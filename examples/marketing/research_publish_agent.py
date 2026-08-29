@@ -28,15 +28,15 @@ vsl-langgraph is only the (small) glue making it callable from a node.
 With OPENAI_API_KEY, GEMINI_API_KEY, and ANTHROPIC_API_KEY all set, this
 makes real calls against a topic you supply:
 
-    python examples/research_publish_agent.py "your topic here"
+    python examples/marketing/research_publish_agent.py "your topic here"
 
 Without all three keys set, it automatically falls back to
-fake_providers.py's deterministic stand-ins and runs all three governance
-outcomes (approved / blocked-by-fact-check / blocked-by-compliance)
+marketing_fake_providers.py's deterministic stand-ins and runs all three
+governance outcomes (approved / blocked-by-fact-check / blocked-by-compliance)
 against canned data instead -- no keys, no cost, no SDKs required, so the
 gate-wiring logic is still fully readable and runnable on a bare checkout:
 
-    python examples/research_publish_agent.py
+    python examples/marketing/research_publish_agent.py
 """
 
 from __future__ import annotations
@@ -53,14 +53,14 @@ from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, AssuranceBasis, F2M
 
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
 
-from model_ids import CLAUDE_COMPLIANCE_MODEL, CLAUDE_EDITORIAL_MODEL, CLAUDE_FACT_CHECK_MODEL
+from marketing_model_ids import CLAUDE_COMPLIANCE_MODEL, CLAUDE_EDITORIAL_MODEL, CLAUDE_FACT_CHECK_MODEL
 
 LIVE = all(os.environ.get(key) for key in ("OPENAI_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"))
 
 if LIVE:
-    from providers import call_claude, call_gemini, call_openai
+    from marketing_providers import call_claude, call_gemini, call_openai
 else:
-    from fake_providers import call_claude, call_gemini, call_openai, set_scenario
+    from marketing_fake_providers import call_claude, call_gemini, call_openai, set_scenario
 
 _ASSURANCE_BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 
@@ -180,10 +180,13 @@ def build_agent():
     graph.add_conditional_edges(
         "fact_check",
         route_on_denial("blocked_unverified", "compliance_check", denial_key="fact_check_denial"),
+        # explicit path_map so get_graph().draw_mermaid() can render both branches
+        {"blocked_unverified": "blocked_unverified", "compliance_check": "compliance_check"},
     )
     graph.add_conditional_edges(
         "compliance_check",
         route_on_denial("blocked_noncompliant", END, denial_key="compliance_denial"),
+        {"blocked_noncompliant": "blocked_noncompliant", END: END},
     )
     graph.add_edge("blocked_unverified", END)
     graph.add_edge("blocked_noncompliant", END)
@@ -222,8 +225,8 @@ async def main() -> None:
 
     print(
         "No OPENAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY found -- running the three offline demo "
-        "scenarios against fake_providers.py's canned responses instead of live calls. Set all three env "
-        "vars and rerun to see this against real providers.\n"
+        "scenarios against marketing_fake_providers.py's canned responses instead of live calls. Set all "
+        "three env vars and rerun to see this against real providers.\n"
     )
     for scenario in ("approved", "unverified", "noncompliant"):
         set_scenario(scenario)

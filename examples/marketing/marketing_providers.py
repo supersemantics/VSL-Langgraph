@@ -16,7 +16,7 @@ from anthropic import AsyncAnthropic
 from google import genai
 from openai import AsyncOpenAI
 
-from model_ids import GEMINI_MODEL, OPENAI_MODEL
+from marketing_model_ids import GEMINI_MODEL, OPENAI_MODEL
 
 
 def _require_env(var_name: str) -> str:

@@ -1,15 +1,16 @@
-"""Deterministic, zero-dependency stand-ins for providers.py's three calls.
+"""Deterministic, zero-dependency stand-ins for marketing_providers.py's
+three calls.
 
 Used automatically when OPENAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY
 aren't all set, so a developer can read and run the governance flow --
 including all three of its outcomes -- with no API keys, no cost, and none
 of the openai/anthropic/google-genai SDKs installed. Imports nothing but
-model_ids (also dependency-free) for exactly that reason.
+marketing_model_ids (also dependency-free) for exactly that reason.
 """
 
 from __future__ import annotations
 
-from model_ids import CLAUDE_COMPLIANCE_MODEL, CLAUDE_FACT_CHECK_MODEL
+from marketing_model_ids import CLAUDE_COMPLIANCE_MODEL, CLAUDE_FACT_CHECK_MODEL
 
 _FAKE_RESEARCH = (
     "- Solid-state batteries replace the liquid electrolyte with a solid one, removing the main fire-risk pathway.\n"

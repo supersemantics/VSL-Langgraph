@@ -82,10 +82,15 @@ def build_agent():
     graph.add_conditional_edges(
         "confidence_check",
         route_on_denial("blocked_low_confidence", "cap_check", denial_key="confidence_denial"),
+        # path_map is optional -- route_on_denial's two args already are the
+        # possible destinations -- but naming them explicitly here lets
+        # get_graph().draw_mermaid() render both branches instead of guessing.
+        {"blocked_low_confidence": "blocked_low_confidence", "cap_check": "cap_check"},
     )
     graph.add_conditional_edges(
         "cap_check",
         route_on_denial("blocked_over_cap", END, denial_key="cap_denial"),
+        {"blocked_over_cap": "blocked_over_cap", END: END},
     )
     graph.add_edge("blocked_low_confidence", END)
     graph.add_edge("blocked_over_cap", END)
