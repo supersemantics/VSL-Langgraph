@@ -42,6 +42,11 @@ def gated_node(
     `denial_key` to the caught exception -- pair with `route_on_denial`
     (or your own router reading `denial_key`) in `add_conditional_edges` to
     send the run to a blocked/terminal node.
+
+    Does not consume `PreNode.fallback` -- a denial raises once,
+    immediately, with no retry loop, regardless of `fallback.max_retries`.
+    `LangGraphAdapter.compile_pre_node` warns if a non-default `Fallback`
+    is set. See docs/dos-and-donts.md.
     """
     extract = candidate_input_fn or (lambda state: state)
 

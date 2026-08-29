@@ -1,6 +1,6 @@
 # Concepts
 
-`vsl-langgraph` assumes the vocabulary defined by [`vsl-core`](https://github.com/4vish/VSL-Core). This page restates just enough of it to use the adapter without leaving this repo — for the complete, field-exact reference (`Fallback`, `TerminalState`, `Cluster`, `VerbaLedger`, identity/re-enablement, the Drift Class catalog), see [`vsl-core`'s README](https://github.com/4vish/VSL-Core#readme) and [`vsl-core-primitives.json`](https://github.com/4vish/VSL-Core/blob/main/docs/vsl-core-primitives.json). Nothing below is copied wholesale on purpose — if `vsl-core` changes a definition, this page should link to the new truth, not fork it.
+`vsl-langgraph` assumes the vocabulary defined by [`vsl-core`](https://github.com/supersemantics/VSL-Core). This page restates just enough of it to use the adapter without leaving this repo — for the complete, field-exact reference (`Fallback`, `TerminalState`, `Cluster`, `VerbaLedger`, identity/re-enablement, the Drift Class catalog), see [`vsl-core`'s README](https://github.com/supersemantics/VSL-Core#readme) and [`vsl-core-primitives.json`](https://github.com/supersemantics/VSL-Core/blob/main/docs/vsl-core-primitives.json). Nothing below is copied wholesale on purpose — if `vsl-core` changes a definition, this page should link to the new truth, not fork it.
 
 ## The gate lifecycle
 
@@ -77,7 +77,7 @@ flowchart LR
 
 **`request_re_enablement`** (`vsl_core.governance.request_re_enablement`) — the one sanctioned way out of a `TerminalState`: pairs a new `Instance` with the `HumanAuthorisedTransition` record that authorises it, so you can't get one without the other. (`Instance._re_enable()` exists underneath but is deliberately named with a leading underscore — not the sanctioned entry point.)
 
-**`Cluster`** (`vsl_core.cluster.Cluster`) — a higher-order identity formed by coordinating multiple constituent `IdentityKey`s, for governance requirements that don't exist at any single constituent's level (`vsl-core`'s own motivating example is the 2010 Flash Crash: individual Gamma > 1, Cluster Gamma = 0). LangGraph is specifically a multi-agent framework, so this is the construct most worth not skipping. Its `invariants` field holds plain `Invariant` objects — compile and wire them through `LangGraphAdapter`/`gated_node` exactly like any other. `__post_init__` refuses to construct if a declared constituent isn't covered by the given `ClusterKey`. Full worked example: [beyond-the-gate.md](beyond-the-gate.md#multi-agent-governance-cluster).
+**`Cluster`** (`vsl_core.cluster.Cluster`) — a higher-order identity formed by coordinating multiple constituent `IdentityKey`s, for governance requirements that don't exist at any single constituent's level. LangGraph is specifically a multi-agent framework, so this is the construct most worth not skipping — see [Node-level Γ is not Cluster-level safety](#node-level-γ-is-not-cluster-level-safety) below for why. Its `invariants` field holds plain `Invariant` objects — compile and wire them through `LangGraphAdapter`/`gated_node` exactly like any other. `__post_init__` refuses to construct if a declared constituent isn't covered by the given `ClusterKey`. Full worked example: [beyond-the-gate.md](beyond-the-gate.md#multi-agent-governance-cluster).
 
 **`ClusterKey`** (`vsl_core.identity.ClusterKey`) — the composite key for a `Cluster`'s constituents (`ClusterKey.from_constituents(...)` derives it deterministically from a hash of the sorted constituent values). Deliberately not a subtype of `IdentityKey`, so a cluster-level key can never be silently accepted where a single-system key is expected.
 
@@ -86,6 +86,14 @@ flowchart LR
 **`Proofing`** / **`Binding`** (`vsl_core.governance`) — `Proofing` is the result of an automated check that a claimed attribute matches an authoritative record (`verified: bool`, `verified_against: str`). `Binding` links a *verified* `Proofing` to an approved escalation path, and structurally refuses to construct from an unverified one.
 
 **`AllowedState`** / **`InadmissibleState`** (`vsl_core.constructs`) — descriptive/classification types, not runtime-enforced. `AllowedState` documents a state that met all prerequisites (carries its own `AssuranceBasis`); `InadmissibleState` documents one that must not occur (`signature`: a free-text description of the detection pattern). Neither has a compile step — the actual enforcement is whatever `PreNode`/`Invariant` you've gated the relevant node with.
+
+## Node-level Γ is not Cluster-level safety
+
+This is the trap most worth catching before scaling past a single agent: **gating `gamma_threshold` at every node in a graph does not mean the composed, multi-agent system is safe.** Node-level Γ is necessary but not sufficient.
+
+`vsl-core`'s own motivating example is the 2010 Flash Crash: every individual participant's Γ was above 1 — each one, in isolation, looked sufficiently governed — and the Cluster-level Γ was still 0. Nothing about a per-node pass rolls up into a system-level guarantee automatically; a `Cluster`'s Γ is a separate quantity, checked separately, and it can fail even when every constituent's `PreNode`/`Invariant` gate is passing cleanly.
+
+Concretely, in `vsl-langgraph` terms: wiring a `gamma_threshold` into every node of a multi-agent graph via `gated_node` governs each node's own action. It says nothing about interactions *between* those nodes — an emergent failure mode that only exists at the composed level, the same way the Flash Crash existed at the market level, not any single trader's. If your graph has more than one agent coordinating, `Cluster`/`ClusterKey` (see the glossary above) is the construct that actually addresses this — not a denser sprinkling of `PreNode`s. See [beyond-the-gate.md](beyond-the-gate.md#multi-agent-governance-cluster) for a real, run, multi-agent worked example.
 
 ## Which gate for which LangGraph node?
 
@@ -101,7 +109,7 @@ Adapted from `vsl-core`'s own decision heuristic (`vsl-core-primitives.json`'s `
 
 ## `gated_node` doesn't write to the ledger either
 
-`vsl-core`'s README is explicit that **the ledger doesn't write itself** — `VerbaLedger` writes are never automatic, only the gate's raise/return is. The same is true here: `gated_node` calls the gate and routes on denial, and that's it. It does not call `VerbaLedger.write*` anywhere. If you want an audit trail, your own node (or a wrapper around `gated_node`) has to write it explicitly — see `vsl-core`'s [`request_re_enablement`/ledger pattern](https://github.com/4vish/VSL-Core#the-ledger-doesnt-write-itself-read-this-before-assuming-an-audit-trail-exists) for the shape, or the full worked example (real ledger writes, real `audit()`, a real issued `VerbaCertificate`) in [beyond-the-gate.md](beyond-the-gate.md#the-full-lifecycle-log-and-escalate). This is easy to assume for free and isn't — see [troubleshooting.md](troubleshooting.md) for what that assumption looks like when it bites.
+`vsl-core`'s README is explicit that **the ledger doesn't write itself** — `VerbaLedger` writes are never automatic, only the gate's raise/return is. The same is true here: `gated_node` calls the gate and routes on denial, and that's it. It does not call `VerbaLedger.write*` anywhere. If you want an audit trail, your own node (or a wrapper around `gated_node`) has to write it explicitly — see `vsl-core`'s [`request_re_enablement`/ledger pattern](https://github.com/supersemantics/VSL-Core#the-ledger-doesnt-write-itself-read-this-before-assuming-an-audit-trail-exists) for the shape, or the full worked example (real ledger writes, real `audit()`, a real issued `VerbaCertificate`) in [beyond-the-gate.md](beyond-the-gate.md#the-full-lifecycle-log-and-escalate). This is easy to assume for free and isn't — see [troubleshooting.md](troubleshooting.md) for what that assumption looks like when it bites.
 
 ## Next
 

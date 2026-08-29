@@ -15,7 +15,7 @@ dependencies = [
     # on a clean install. Switch this to a version pin once it's published;
     # note PyPI itself rejects direct-URL deps at upload time, so this line
     # also has to change before *this* package can be published there.
-    "super-semantics-vsl @ git+https://github.com/4vish/VSL-Core.git",
+    "super-semantics-vsl @ git+https://github.com/supersemantics/VSL-Core.git",
     "langgraph>=0.2",
 ]
 keywords = ["governance", "ai-safety", "guardrails", "langgraph", "vsl", "verba"]
