@@ -111,6 +111,8 @@ Adapted from `vsl-core`'s own decision heuristic (`vsl-core-primitives.json`'s `
 
 `vsl-core`'s README is explicit that **the ledger doesn't write itself** — `VerbaLedger` writes are never automatic, only the gate's raise/return is. The same is true here: `gated_node` calls the gate and routes on denial, and that's it. It does not call `VerbaLedger.write*` anywhere. If you want an audit trail, your own node (or a wrapper around `gated_node`) has to write it explicitly — see `vsl-core`'s [`request_re_enablement`/ledger pattern](https://github.com/supersemantics/VSL-Core#the-ledger-doesnt-write-itself-read-this-before-assuming-an-audit-trail-exists) for the shape, or the full worked example (real ledger writes, real `audit()`, a real issued `VerbaCertificate`) in [beyond-the-gate.md](beyond-the-gate.md#the-full-lifecycle-log-and-escalate). This is easy to assume for free and isn't — see [troubleshooting.md](troubleshooting.md) for what that assumption looks like when it bites.
 
+For persisting those writes to a durable, hosted ledger rather than a local file, `VerbaLedger` accepts any `LedgerStore` -- see [`vsl-core-ledger-client`](https://github.com/supersemantics/VSL-Core-ledger-client).
+
 ## Next
 
 - [quickstart.md](quickstart.md) — walk from `pip install` to a working chained-gate graph.
