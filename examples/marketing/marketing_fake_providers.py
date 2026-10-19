@@ -3,7 +3,7 @@ three calls.
 
 Used automatically when OPENAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY
 aren't all set, so a developer can read and run the governance flow --
-including all three of its outcomes -- with no API keys, no cost, and none
+including all four of its outcomes -- with no API keys, no cost, and none
 of the openai/anthropic/google-genai SDKs installed. Imports nothing but
 marketing_model_ids (also dependency-free) for exactly that reason.
 """
@@ -28,12 +28,16 @@ _FAKE_DRAFT = (
     "(offline demo data -- no live OpenAI call was made)"
 )
 
-# Each entry controls what the two Claude gates decide for that run, so all
-# three governance outcomes are reachable without a live model in the loop.
+# Each entry controls what the three Claude gates decide for that run, so all
+# four governance outcomes are reachable without a live model in the loop.
+# Brand-safety and compliance use the same Claude model, so each gets its own
+# verdict here (told apart by the reviewer's system prompt); otherwise one
+# gate's canned score would decide the other gate too.
 _SCENARIOS: dict[str, dict[str, str]] = {
-    "approved": {"fact_check": "PASS", "compliance": "1.6"},
-    "unverified": {"fact_check": "FAIL", "compliance": "1.6"},
-    "noncompliant": {"fact_check": "PASS", "compliance": "0.4"},
+    "approved": {"fact_check": "PASS", "brand_safety": "1.6", "compliance": "1.6"},
+    "unverified": {"fact_check": "FAIL", "brand_safety": "1.6", "compliance": "1.6"},
+    "unsafe": {"fact_check": "PASS", "brand_safety": "0.3", "compliance": "1.6"},
+    "noncompliant": {"fact_check": "PASS", "brand_safety": "1.6", "compliance": "0.4"},
 }
 
 _current_scenario = "approved"
@@ -58,6 +62,8 @@ async def call_claude(model: str, system: str, input_text: str, *, max_tokens: i
     verdicts = _SCENARIOS[_current_scenario]
     if model == CLAUDE_FACT_CHECK_MODEL:
         return f"{verdicts['fact_check']}\nOffline stub verdict for the {_current_scenario!r} scenario -- no live Claude call was made."
+    if model == CLAUDE_COMPLIANCE_MODEL and "brand-safety" in system:
+        return f"{verdicts['brand_safety']}\nOffline stub brand-safety rating for the {_current_scenario!r} scenario -- no live Claude call was made."
     if model == CLAUDE_COMPLIANCE_MODEL:
         return f"{verdicts['compliance']}\nOffline stub rating for the {_current_scenario!r} scenario -- no live Claude call was made."
     return "This is an offline stub editorial note. Set OPENAI_API_KEY, GEMINI_API_KEY, and ANTHROPIC_API_KEY to see a live one."

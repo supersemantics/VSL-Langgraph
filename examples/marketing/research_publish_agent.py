@@ -1,4 +1,4 @@
-"""Sample agent: a research-to-publish pipeline with five real LLM tasks
+"""Sample agent: a research-to-publish pipeline with six real LLM tasks
 across three providers, gated by vsl-core through vsl-langgraph.
 
     Task                      Provider   Model                       VSL role
@@ -7,9 +7,10 @@ across three providers, gated by vsl-core through vsl-langgraph.
                                                                        gathering info has no side effect)
     2. draft                   OpenAI    gpt-5.6-sol                 plain node (same reason)
     3. fact-check the draft    Claude    claude-opus-4-8             Invariant.rule -- non-bypassable
-    4. compliance/tone review  Claude    claude-sonnet-5             PreNode.monitor -- soft threshold
-    5. write final published   Claude    claude-haiku-4-5-20251001   the guarded action itself; only
-       text                                                          runs if both gates above passed
+    4. brand-safety review     Claude    claude-sonnet-5             PreNode.monitor -- soft threshold
+    5. compliance/tone review  Claude    claude-sonnet-5             PreNode.monitor -- soft threshold
+    6. write final published   Claude    claude-haiku-4-5-20251001   the guarded action itself; only
+       text                                                          runs if all three gates above passed
 
 This is deliberately the same PreNode + Invariant chaining pattern as
 examples/purchase_approval_agent.py -- the point of putting three unrelated
@@ -31,8 +32,9 @@ makes real calls against a topic you supply:
     python examples/marketing/research_publish_agent.py "your topic here"
 
 Without all three keys set, it automatically falls back to
-marketing_fake_providers.py's deterministic stand-ins and runs all three
-governance outcomes (approved / blocked-by-fact-check / blocked-by-compliance)
+marketing_fake_providers.py's deterministic stand-ins and runs all four
+governance outcomes (approved / blocked-by-fact-check / blocked-by-brand-safety
+/ blocked-by-compliance)
 against canned data instead -- no keys, no cost, no SDKs required, so the
 gate-wiring logic is still fully readable and runnable on a bare checkout:
 
@@ -159,8 +161,9 @@ async def _brand_safety_monitor(state: ArticleState) -> GammaEstimate:
 
 
 async def publish_node(state: ArticleState) -> dict:
-    """The actual guarded side effect -- only reached if both the
-    fact-check Invariant and the compliance PreNode passed. Claude Haiku
+    """The actual guarded side effect -- only reached if the fact-check
+    Invariant, the brand-safety PreNode and the compliance PreNode all
+    passed. Claude Haiku
     writes the final editorial note; a real deployment would swap the
     print() in main() for an actual publish call here.
     """
@@ -249,6 +252,11 @@ def _print_result(result: dict) -> None:
         print(result["fact_check_denial"])
         return
 
+    if result.get("brand_safety_denial") is not None:
+        print("\n--- BLOCKED: brand-safety PreNode denied (claude-sonnet-5) ---")
+        print(result["brand_safety_denial"])
+        return
+
     if result.get("compliance_denial") is not None:
         print("\n--- BLOCKED: compliance PreNode denied (claude-sonnet-5) ---")
         print(result["compliance_denial"])
@@ -268,11 +276,11 @@ async def main() -> None:
         return
 
     print(
-        "No OPENAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY found -- running the three offline demo "
+        "No OPENAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY found -- running the four offline demo "
         "scenarios against marketing_fake_providers.py's canned responses instead of live calls. Set all "
         "three env vars and rerun to see this against real providers.\n"
     )
-    for scenario in ("approved", "unverified", "noncompliant"):
+    for scenario in ("approved", "unverified", "unsafe", "noncompliant"):
         set_scenario(scenario)
         print(f"=== scenario: {scenario} ===")
         result = await build_agent().ainvoke({"topic": "(offline demo -- no live research/draft calls made)"})
