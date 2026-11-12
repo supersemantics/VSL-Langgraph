@@ -15,20 +15,22 @@ and provides the LangGraph-specific wiring to call a compiled gate from a
 
 ## Documentation
 
-- [docs/concepts.md](docs/concepts.md) -- the vocabulary (`PreNode`, `Invariant`, `GammaEstimate`, `AssuranceBasis`/F1-F2, `CompiledGate`), a diagram of the gate lifecycle, which gate shape fits which kind of LangGraph node, and a complete scope table for every `vsl-core` construct -- not just the two this adapter compiles.
-- [docs/quickstart.md](docs/quickstart.md) -- install through a working chained-gate graph, building up from one gate to real LLM-backed gates, with real diagrams generated from the actual compiled graphs.
-- [docs/api-reference.md](docs/api-reference.md) -- `LangGraphAdapter` / `gated_node` / `route_on_denial`, every parameter, scannable.
-- [docs/beyond-the-gate.md](docs/beyond-the-gate.md) -- everything `vsl-core` defines that this adapter doesn't compile (`TerminalState`, `VerbaLedger`, re-enablement, `Cluster`, `Specification`/`Proofing`/`Binding`) but that still applies inside a LangGraph app, each with real, run worked examples.
-- [docs/dos-and-donts.md](docs/dos-and-donts.md) -- a scannable checklist for writing or reviewing `vsl-langgraph` code, each rule traced back to a real reason.
-- [docs/testing-your-gates.md](docs/testing-your-gates.md) -- how to prove your own `PreNode`/`Invariant` wiring is correct, generalized from this repo's own test suite.
-- [docs/troubleshooting.md](docs/troubleshooting.md) -- real, reproduced failure modes (not guessed) with exact error text and fixes.
+- [docs/concepts.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/concepts.md) -- the vocabulary (`PreNode`, `Invariant`, `GammaEstimate`, `AssuranceBasis`/F1-F2, `CompiledGate`), a diagram of the gate lifecycle, which gate shape fits which kind of LangGraph node, and a complete scope table for every `vsl-core` construct -- not just the two this adapter compiles.
+- [docs/quickstart.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/quickstart.md) -- install through a working chained-gate graph, building up from one gate to real LLM-backed gates, with real diagrams generated from the actual compiled graphs.
+- [docs/api-reference.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/api-reference.md) -- `LangGraphAdapter` / `gated_node` / `route_on_denial`, every parameter, scannable.
+- [docs/beyond-the-gate.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/beyond-the-gate.md) -- everything `vsl-core` defines that this adapter doesn't compile (`TerminalState`, `VerbaLedger`, re-enablement, `Cluster`, `Specification`/`Proofing`/`Binding`) but that still applies inside a LangGraph app, each with real, run worked examples.
+- [docs/dos-and-donts.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/dos-and-donts.md) -- a scannable checklist for writing or reviewing `vsl-langgraph` code, each rule traced back to a real reason.
+- [docs/testing-your-gates.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/testing-your-gates.md) -- how to prove your own `PreNode`/`Invariant` wiring is correct, generalized from this repo's own test suite.
+- [docs/troubleshooting.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/troubleshooting.md) -- real, reproduced failure modes (not guessed) with exact error text and fixes.
 
 ## Install
 
 ```
-pip install "super-semantics-vsl @ git+https://github.com/supersemantics/VSL-Core.git@v0.3.0"
-pip install -e .   # from a local clone of this repo
+pip install vsl-langgraph
 ```
+
+This installs vsl-core (`super-semantics-vsl`, imported as `vsl_core`) and LangGraph with it. From a
+local clone of this repo: `pip install -e .`
 
 ## Quick taste
 
@@ -39,11 +41,11 @@ graph.add_node("do_the_thing", gated_node(gate, do_the_thing))
 graph.add_conditional_edges("do_the_thing", route_on_denial("blocked", "allowed"))
 ```
 
-`gated_node` calls `gate` immediately before `do_the_thing` runs; on denial, `do_the_thing` never runs and `route_on_denial` sends the graph to `"blocked"` instead. Full walkthrough with real output: [docs/quickstart.md](docs/quickstart.md).
+`gated_node` calls `gate` immediately before `do_the_thing` runs; on denial, `do_the_thing` never runs and `route_on_denial` sends the graph to `"blocked"` instead. Full walkthrough with real output: [docs/quickstart.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/quickstart.md).
 
 ## Sample agents
 
-`examples/` is organized by domain -- see [examples/README.md](examples/README.md) for the full list and the roadmap for domains not built yet. Four so far:
+`examples/` is organized by domain -- see [examples/README.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/examples/README.md) for the full list and the roadmap for domains not built yet. Four so far:
 
 - **`examples/financial-agents/purchase_approval_agent.py`** -- both governance primitives chained in one graph, synthetic and LLM-free. The fastest read of the gate-wiring pattern.
 - **`examples/marketing/research_publish_agent.py`** -- the same pattern behind five real LLM calls across three providers (Gemini, OpenAI, three Claude models), with an automatic offline fallback when no API keys are set.
@@ -57,7 +59,7 @@ python examples/customer-support/refund_support_agent.py
 python examples/chat-conversation/chat_reply_agent.py
 ```
 
-All four run with zero setup (deterministic offline fallbacks) or live against real providers with the right API keys set. Diagrammed and walked through step by step in [docs/quickstart.md](docs/quickstart.md).
+All four run with zero setup (deterministic offline fallbacks) or live against real providers with the right API keys set. Diagrammed and walked through step by step in [docs/quickstart.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/quickstart.md).
 
 ## Layout
 

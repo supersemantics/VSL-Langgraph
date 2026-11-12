@@ -5,8 +5,7 @@ Assumes the terms in [concepts.md](concepts.md) (`PreNode`, `Invariant`, `Compil
 ## Install
 
 ```
-pip install git+https://github.com/supersemantics/VSL-Core.git
-pip install -e .   # from a local clone of this repo
+pip install vsl-langgraph
 ```
 
 ## Step 1: one gate
