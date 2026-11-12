@@ -26,7 +26,7 @@ and provides the LangGraph-specific wiring to call a compiled gate from a
 ## Install
 
 ```
-pip install git+https://github.com/supersemantics/VSL-Core.git
+pip install "super-semantics-vsl @ git+https://github.com/supersemantics/VSL-Core.git@v0.3.0"
 pip install -e .   # from a local clone of this repo
 ```
 
