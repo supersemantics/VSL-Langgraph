@@ -51,7 +51,7 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from vsl_core.constructs import Invariant, PreNode
-from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, AssuranceBasis, F2Modification, GammaEstimate
+from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, GammaEstimate
 
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
 
@@ -63,8 +63,6 @@ if LIVE:
     from marketing_providers import call_claude, call_gemini, call_openai
 else:
     from marketing_fake_providers import call_claude, call_gemini, call_openai, set_scenario
-
-_ASSURANCE_BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 
 _FIRST_LINE = re.compile(r"\s*(\S+)")
 
@@ -183,7 +181,6 @@ def build_agent():
         name="article-fact-check",
         description="Every factual claim in the draft must be supported by the research briefing -- non-bypassable.",
         rule=_fact_check_rule,
-        assurance_basis=_ASSURANCE_BASIS,
     )
     fact_check_gate = adapter.compile_invariant(fact_check_invariant)
 
@@ -191,7 +188,6 @@ def build_agent():
         name="article-compliance",
         description="Requires the compliance reviewer's confidence signal to clear the robust Gamma threshold before publishing.",
         monitor=_compliance_monitor,
-        assurance_basis=_ASSURANCE_BASIS,
         gamma_threshold=ROBUST_GAMMA_DEFAULT_THRESHOLD,
     )
     compliance_gate = adapter.compile_pre_node(compliance_pre_node)
@@ -200,7 +196,6 @@ def build_agent():
         name="article-brand-safety",
         description="Requires the brand-safety reviewer's confidence signal to clear the robust Gamma threshold before publishing -- independent of, and in addition to, the tone/policy compliance check.",
         monitor=_brand_safety_monitor,
-        assurance_basis=_ASSURANCE_BASIS,
         gamma_threshold=ROBUST_GAMMA_DEFAULT_THRESHOLD,
     )
     brand_safety_gate = adapter.compile_pre_node(brand_safety_pre_node)

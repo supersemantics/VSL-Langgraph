@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vsl-langgraph"
-version = "0.1.2"
+version = "0.2.0"
 description = "LangGraph adapter for VSL (VERBA Specification Language) governance primitives -- implements vsl-core's VSLAdapter conformance contract."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = [
     # vsl-core, published on PyPI as super-semantics-vsl (imported as vsl_core).
-    "super-semantics-vsl>=0.3,<0.4",
+    "super-semantics-vsl>=0.4,<0.5",
     "langgraph>=0.2",
 ]
 keywords = ["governance", "ai-safety", "guardrails", "langgraph", "vsl", "verba"]

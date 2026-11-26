@@ -39,7 +39,7 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from vsl_core.constructs import Invariant, PreNode
-from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, AssuranceBasis, F2Modification, GammaEstimate
+from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, GammaEstimate
 
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
 
@@ -49,8 +49,6 @@ if LIVE:
     from support_providers import decide
 else:
     from support_fake_providers import decide
-
-_ASSURANCE_BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 
 # vsl-core's own domain.py/tools.py scaffold pattern: plain data, no
 # framework or model-provider awareness.
@@ -118,7 +116,6 @@ refund_invariant = Invariant(
     name="refund-eligibility",
     description="Never issue a refund without confirmed eligibility and an amount within the order's own amount -- non-bypassable.",
     rule=_refund_eligible,
-    assurance_basis=_ASSURANCE_BASIS,
 )
 
 
@@ -132,7 +129,6 @@ email_pre_node = PreNode(
     name="email-recipient-scope",
     description="Requires the email recipient to be a known customer address before send_email fires.",
     monitor=_email_recipient_in_scope,
-    assurance_basis=_ASSURANCE_BASIS,
     gamma_threshold=ROBUST_GAMMA_DEFAULT_THRESHOLD,
 )
 

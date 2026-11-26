@@ -3,11 +3,9 @@ from typing import Any, TypedDict
 from langgraph.graph import END, START, StateGraph
 from vsl_core.constructs import Invariant, PreNode
 from vsl_core.exceptions import InvariantViolation
-from vsl_core.metrics import AssuranceBasis, F2Modification, GammaEstimate
+from vsl_core.metrics import GammaEstimate
 
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
-
-_ASSURANCE_BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 
 
 class GraphState(TypedDict, total=False):
@@ -25,7 +23,6 @@ def _build_graph():
         name="integration-test-pre-node",
         description="Requires gamma above 1.0 before the guarded node runs.",
         monitor=_monitor,
-        assurance_basis=_ASSURANCE_BASIS,
         gamma_threshold=1.0,
     )
     gate = LangGraphAdapter().compile_pre_node(pre_node)
@@ -71,7 +68,6 @@ def _build_invariant_graph():
         name="integration-test-invariant",
         description="Requires state['allowed'] to be True before the guarded node runs.",
         rule=_rule,
-        assurance_basis=_ASSURANCE_BASIS,
     )
     gate = LangGraphAdapter().compile_invariant(invariant)
 
@@ -100,3 +96,48 @@ async def test_violated_invariant_skips_node_and_routes_to_blocked():
     assert result.get("ran_side_effect") is None
     denial = result.get("vsl_denial")
     assert isinstance(denial, InvariantViolation)
+
+
+import pytest  # noqa: E402
+
+from vsl_core.ledger import Enforcement, VerbaLedger  # noqa: E402
+
+
+@pytest.mark.parametrize("allowed", [True, False])
+async def test_ledger_shows_the_gate_held_before_the_node(allowed):
+    ledger = VerbaLedger()
+
+    async def rule(state: InvariantState) -> bool:
+        ledger.write_gate_decision(identity_key="refund-agent", primitive_name="refund-ok",
+                                   allowed=state["allowed"], decision_id="d1")
+        return state["allowed"]
+
+    def guarded(state: InvariantState) -> dict:
+        ledger.write_action(identity_key="refund-agent", action_name="issue_refund", decision_id="d1")
+        return {"ran_side_effect": True}
+
+    gate = LangGraphAdapter().compile_invariant(Invariant(name="refund-ok", description="d", rule=rule))
+    graph = StateGraph(InvariantState)
+    graph.add_node("guarded", gated_node(gate, guarded))
+    graph.add_node("blocked", lambda state: {})
+    graph.add_node("allowed", lambda state: {})
+    graph.add_edge(START, "guarded")
+    graph.add_conditional_edges("guarded", route_on_denial("blocked", "allowed"))
+    graph.add_edge("blocked", END)
+    graph.add_edge("allowed", END)
+
+    result = await graph.compile().ainvoke({"allowed": allowed})
+    assert bool(result.get("ran_side_effect")) is allowed
+    assert ledger.enforcement("d1") == Enforcement.BEFORE_ACTION
+
+
+def test_compiling_gates_without_a_basis_warns_about_nothing():
+    import warnings
+
+    async def monitor(_state) -> GammaEstimate:
+        return GammaEstimate(gamma_hat=2.0)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        LangGraphAdapter().compile_invariant(Invariant(name="i", description="d", rule=_rule))
+        LangGraphAdapter().compile_pre_node(PreNode(name="p", description="d", monitor=monitor))

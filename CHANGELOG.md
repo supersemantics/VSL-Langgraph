@@ -2,6 +2,24 @@
 
 What changed in each release, and why. Newest first.
 
+## 0.2.0 (unreleased): vsl-core 0.4, no F2 claims
+
+**Before:** vsl-langgraph required vsl-core `>=0.3,<0.4`. Every example, doc snippet and test
+passed `assurance_basis=AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)`,
+which overclaimed for gates that only allow or block, and `LangGraphAdapter` scanned a monitor's or
+rule's source to warn when it claimed `FULL` while calling a hosted model API.
+
+**After:** vsl-langgraph requires vsl-core `>=0.4,<0.5`. Gates are built from a name, description
+and monitor or rule, with no assurance claim. The FULL-claim heuristic, its test and its two test
+fixtures are gone: vsl-core 0.4 takes no F2 value, so there is nothing to check. `docs/concepts.md`
+describes the computed `Enforcement` in place of `AssuranceBasis`, and shows recording the guarded
+node's side effect with `write_action()`. A new test runs a real `StateGraph` and checks the ledger
+reads `BEFORE_ACTION` for an allowed and a denied call.
+
+**Why:** vsl-core 0.4.0 computes whether a gate held before its action from the ledger instead of
+taking a declared level. Code still passing `assurance_basis` keeps working, with a
+`FutureWarning` from vsl-core.
+
 ## 0.1.2 (2026-11-13, tag `v0.1.2`): published on PyPI
 
 The first version on PyPI: `pip install vsl-langgraph`, which installs vsl-core (`super-semantics-vsl`)

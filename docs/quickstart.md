@@ -16,7 +16,7 @@ The smallest possible working graph: a `PreNode` guarding a single node, with a 
 from typing import Any, TypedDict
 from langgraph.graph import StateGraph, START, END
 from vsl_core.constructs import PreNode
-from vsl_core.metrics import AssuranceBasis, F2Modification, GammaEstimate
+from vsl_core.metrics import GammaEstimate
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
 
 class State(TypedDict, total=False):
@@ -31,7 +31,6 @@ pre_node = PreNode(
     name="my-pre-node",
     description="Requires gamma above the robust threshold before `do_the_thing` runs.",
     monitor=monitor,
-    assurance_basis=AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL),
     gamma_threshold=1.1,
 )
 gate = LangGraphAdapter().compile_pre_node(pre_node)

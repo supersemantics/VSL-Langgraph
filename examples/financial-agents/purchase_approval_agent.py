@@ -24,13 +24,11 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from vsl_core.constructs import Invariant, PreNode
-from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, AssuranceBasis, F2Modification, GammaEstimate
+from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, GammaEstimate
 
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
 
 HARD_CAP = 1000.0
-
-_ASSURANCE_BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 
 
 class PurchaseState(TypedDict, total=False):
@@ -56,7 +54,6 @@ def build_agent():
         name="purchase-confidence",
         description="Requires the monitor's confidence signal to clear the robust Gamma threshold before a purchase is auto-approved.",
         monitor=_confidence_monitor,
-        assurance_basis=_ASSURANCE_BASIS,
         gamma_threshold=ROBUST_GAMMA_DEFAULT_THRESHOLD,
     )
     confidence_gate = adapter.compile_pre_node(confidence_pre_node)
@@ -65,7 +62,6 @@ def build_agent():
         name="purchase-hard-cap",
         description=f"Amount must never exceed the hard cap of {HARD_CAP}, regardless of confidence -- non-bypassable.",
         rule=_under_hard_cap,
-        assurance_basis=_ASSURANCE_BASIS,
     )
     cap_gate = adapter.compile_invariant(hard_cap_invariant)
 
