@@ -2,7 +2,7 @@
 
 What changed in each release, and why. Newest first.
 
-## 0.2.0 (unreleased): vsl-core 0.4, no F2 claims
+## 0.2.0 (2026-11-26, tag `v0.2.0`): vsl-core 0.4, no F2 claims
 
 **Before:** vsl-langgraph required vsl-core `>=0.3,<0.4`. Every example, doc snippet and test
 passed `assurance_basis=AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)`,
