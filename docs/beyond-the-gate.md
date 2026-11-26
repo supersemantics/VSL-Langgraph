@@ -16,10 +16,7 @@ from vsl_core.exceptions import InvariantViolation
 from vsl_core.governance import GovernanceAuthority, request_re_enablement
 from vsl_core.identity import Evidence, IdentityKey, Instance
 from vsl_core.ledger import LedgerEntryType, VerbaLedger
-from vsl_core.metrics import AssuranceBasis, F2Modification
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
-
-BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 
 # 1. CONSTRUCT
 governance_halt = TerminalState(
@@ -35,7 +32,6 @@ refund_invariant = Invariant(
     name="refund-eligibility",
     description="Never issue a refund without confirmed eligibility -- non-bypassable.",
     rule=eligible_for_refund,
-    assurance_basis=BASIS,
     on_violation=governance_halt,
 )
 
@@ -162,7 +158,6 @@ checkout_consistency = Invariant(
     name="checkout-amount-consistency",
     description="The payment agent's charge must match the booking agent's reserved amount.",
     rule=amounts_match,
-    assurance_basis=BASIS,
 )
 
 checkout_cluster = Cluster(

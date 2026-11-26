@@ -15,7 +15,7 @@ and provides the LangGraph-specific wiring to call a compiled gate from a
 
 ## Documentation
 
-- [docs/concepts.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/concepts.md) -- the vocabulary (`PreNode`, `Invariant`, `GammaEstimate`, `AssuranceBasis`/F1-F2, `CompiledGate`), a diagram of the gate lifecycle, which gate shape fits which kind of LangGraph node, and a complete scope table for every `vsl-core` construct -- not just the two this adapter compiles.
+- [docs/concepts.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/concepts.md) -- the vocabulary (`PreNode`, `Invariant`, `GammaEstimate`, `Enforcement`, `CompiledGate`), a diagram of the gate lifecycle, which gate shape fits which kind of LangGraph node, and a complete scope table for every `vsl-core` construct -- not just the two this adapter compiles.
 - [docs/quickstart.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/quickstart.md) -- install through a working chained-gate graph, building up from one gate to real LLM-backed gates, with real diagrams generated from the actual compiled graphs.
 - [docs/api-reference.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/api-reference.md) -- `LangGraphAdapter` / `gated_node` / `route_on_denial`, every parameter, scannable.
 - [docs/beyond-the-gate.md](https://github.com/supersemantics/VSL-Langgraph/blob/HEAD/docs/beyond-the-gate.md) -- everything `vsl-core` defines that this adapter doesn't compile (`TerminalState`, `VerbaLedger`, re-enablement, `Cluster`, `Specification`/`Proofing`/`Binding`) but that still applies inside a LangGraph app, each with real, run worked examples.

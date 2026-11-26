@@ -125,6 +125,6 @@ GammaEstimate(gamma_hat=1.5).sufficient() = True
 
 ## Still stuck?
 
-- [concepts.md](concepts.md) — what `PreNode`/`Invariant`/`GammaEstimate`/`AssuranceBasis` actually mean.
+- [concepts.md](concepts.md) — what `PreNode`/`Invariant`/`GammaEstimate`/`Enforcement` actually mean.
 - [api-reference.md](api-reference.md) — exact signatures and behavior for everything this package exports.
 - [`vsl-core`'s own README](https://github.com/supersemantics/VSL-Core#readme) and [`vsl-core-primitives.json`](https://github.com/supersemantics/VSL-Core/blob/main/docs/vsl-core-primitives.json) — the canonical reference for anything not specific to LangGraph wiring (`Fallback`, `TerminalState`, `VerbaLedger`, identity/re-enablement).

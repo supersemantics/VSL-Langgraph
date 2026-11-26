@@ -16,16 +16,13 @@ The simplest, fastest option — call the `CompiledGate` the same way `gated_nod
 import pytest
 from vsl_core.constructs import Invariant
 from vsl_core.exceptions import InvariantViolation
-from vsl_core.metrics import AssuranceBasis, F2Modification
 from vsl_langgraph import LangGraphAdapter
-
-BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 
 async def eligible(candidate: dict) -> bool:
     return candidate["eligible"]
 
 refund_invariant = Invariant(
-    name="refund-eligibility", description="...", rule=eligible, assurance_basis=BASIS,
+    name="refund-eligibility", description="...", rule=eligible,
 )
 gate = LangGraphAdapter().compile_invariant(refund_invariant)
 

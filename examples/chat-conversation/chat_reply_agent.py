@@ -38,7 +38,7 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from vsl_core.constructs import Invariant, PreNode
-from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, AssuranceBasis, F2Modification, GammaEstimate
+from vsl_core.metrics import ROBUST_GAMMA_DEFAULT_THRESHOLD, GammaEstimate
 
 from vsl_langgraph import LangGraphAdapter, gated_node, route_on_denial
 
@@ -49,7 +49,6 @@ if LIVE:
 else:
     from chat_fake_providers import draft_reply, judge_confidence, judge_guarantee, set_scenario
 
-_ASSURANCE_BASIS = AssuranceBasis(f1_pre_commitment=True, f2_modification=F2Modification.FULL)
 _FIRST_LINE = re.compile(r"\s*(\S+)")
 
 
@@ -77,7 +76,6 @@ guarantee_invariant = Invariant(
     name="no-unverified-guarantee",
     description="A reply promising a specific legal/medical/financial outcome not backed by policy must never be sent -- non-bypassable.",
     rule=_no_unverified_guarantee,
-    assurance_basis=_ASSURANCE_BASIS,
 )
 
 
@@ -96,7 +94,6 @@ confidence_pre_node = PreNode(
     name="reply-resolves-issue",
     description="Requires confidence the draft fully resolves the customer's issue before auto-sending it; otherwise hands off to a human.",
     monitor=_resolves_the_issue,
-    assurance_basis=_ASSURANCE_BASIS,
     gamma_threshold=ROBUST_GAMMA_DEFAULT_THRESHOLD,
 )
 
